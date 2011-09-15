@@ -9,4 +9,4 @@
 # @version: 1.0.0.dev
 #############################################
 
-cat $1 | cut -d ' '  -f1 | sort | uniq -c | tee test.txt
+cat $1 | cut -d ' '  -f1 | sort | uniq -c | sort -rn | tee tmp.txt | head -n 10
