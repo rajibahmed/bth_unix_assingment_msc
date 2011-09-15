@@ -8,4 +8,5 @@
 # @emails : {raae10,moca}@students.bth.se
 # @version: 1.0.0.dev
 #############################################
-echo
+
+cat $1 | cut -d ' '  -f1 | sort | uniq -c | tee test.txt
