@@ -5,7 +5,7 @@
 # and generating report from that with bash
 #
 # @authors: Rajib Ahmed & Md. Abdur Razzak
-# @emails : {raae10,moca}@students.bth.se
+# @emails : {raae10,morc10}@students.bth.se
 # @version: 1.0.0.dev
 #############################################
 
