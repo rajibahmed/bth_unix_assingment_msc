@@ -14,29 +14,58 @@ n=20
 
 #set -- `getopt hn: $*`
 
-#for option in $*
-#do
-  #echo ${option}
-#done
+output_help(){
+    echo "usage: bla bla"
+}
 
-
-bestAttempts(){
+best_attempts(){
   #echo "Q1: Most number of connection attempts   "
   #echo "========================================="
-
   #conditional for time parsing
-  cat $1 | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n 10
+  echo ${lim}
+  cat $file | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n 10
   #echo "\n\n"
 }
 
-successfulConnection(){
+successful_con(){
   echo "Q2: Most number of successful connections"
   echo "========================================="
 
   #conditional for time parsing
-  cat $1 |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10 | sed "s/200$//"
+  cat $file |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10 | sed "s/200$//"
   echo "\n\n"
 }
 
-bestAttempts $1
-#successfulConnection $1
+
+# $@ is passed here
+# $@ is a special vaible that holds the
+# seperated
+if [ $# -lt 1 ]; then
+  output_help
+  exit 1
+fi
+
+while [ $# -gt 1 ]
+do
+  echo ${1}
+  case ${1} in
+    -n)
+      lim=${1}
+      ;;
+    -f) file=${2}
+      ;;
+    --)
+      break
+      ;;
+    -*)
+      echo $0: $1: unrecognized option >&2
+      break
+      ;;
+     *) break
+      ;;
+  esac
+  shift
+done
+
+best_attempts
+successful_con
