@@ -9,11 +9,27 @@
 # @version: 1.0.0.dev
 #############################################
 
-echo "Q1: Most number of connection attempts"
-echo "========================================"
-cat $1 | cut -d ' '  -f1 | sort | uniq -c | sort -rn | tee tmp.txt | head -n 10
+#default variables
+n=20
 
-echo "\n\n"
-echo "Q2: Most number of successful connections"
-echo "========================================="
-cat $1 |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10
+
+bestAttempts(){
+  echo "Q1: Most number of connection attempts   "
+  echo "========================================="
+
+  #conditional for time parsing
+  cat $1 | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n 10
+  echo "\n\n"
+}
+
+successfulConnection(){
+  echo "Q2: Most number of successful connections"
+  echo "========================================="
+
+  #conditional for time parsing
+  cat $1 |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10
+  echo "\n\n"
+}
+
+bestAttempts $1
+successfulConnection $1
