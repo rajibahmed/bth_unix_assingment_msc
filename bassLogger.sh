@@ -10,22 +10,33 @@
 #############################################
 
 #default variables
+VERSION="1.0.0.dev"
 n=20
 
 #set -- `getopt hn: $*`
 
 output_help(){
-    echo "usage: bla bla"
+  echo "usage: options [n|h|f]"
 }
 
+
+
+version(){
+  echo "${0} is now at ${VERSION}"
+}
+
+
 best_attempts(){
-  #echo "Q1: Most number of connection attempts   "
-  #echo "========================================="
+  echo "Q1: Most number of connection attempts   "
+  echo "========================================="
+
   #conditional for time parsing
   echo ${lim}
   cat $file | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n 10
   #echo "\n\n"
 }
+
+
 
 successful_con(){
   echo "Q2: Most number of successful connections"
@@ -37,6 +48,8 @@ successful_con(){
 }
 
 
+
+
 # $@ is passed here
 # $@ is a special vaible that holds the
 # seperated
@@ -45,24 +58,23 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-while [ $# -gt 1 ]
+while [ $# -gt 0 ]
 do
-  echo ${1}
+  echo ${2}
   case ${1} in
-    -n)
-      lim=${1}
+    -n | --number )   lim=${1}  ;;
+    -f | --file   )   file=${2} ;;
+    -v | --version)
+      version
+      exit 0
       ;;
-    -f) file=${2}
-      ;;
-    --)
-      break
+    -h | --help   )
+      output_help
+      exit 0
       ;;
     -*)
-      echo $0: $1: unrecognized option >&2
-      break
-      ;;
-     *) break
-      ;;
+      echo $0: $1: unrecognized option >&2 ;;
+     *) break   ;;
   esac
   shift
 done
