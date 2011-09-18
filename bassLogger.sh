@@ -12,14 +12,21 @@
 #default variables
 n=20
 
+#set -- `getopt hn: $*`
+
+#for option in $*
+#do
+  #echo ${option}
+#done
+
 
 bestAttempts(){
-  echo "Q1: Most number of connection attempts   "
-  echo "========================================="
+  #echo "Q1: Most number of connection attempts   "
+  #echo "========================================="
 
   #conditional for time parsing
   cat $1 | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n 10
-  echo "\n\n"
+  #echo "\n\n"
 }
 
 successfulConnection(){
@@ -27,9 +34,9 @@ successfulConnection(){
   echo "========================================="
 
   #conditional for time parsing
-  cat $1 |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10
+  cat $1 |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n 10 | sed "s/200$//"
   echo "\n\n"
 }
 
 bestAttempts $1
-successfulConnection $1
+#successfulConnection $1
