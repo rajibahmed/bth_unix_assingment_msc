@@ -33,7 +33,7 @@ best_attempts(){
   echo "========================================="
 
   #conditional for time parsing
-  cat $file | cut -d ' '  -f1 | sort | uniq -c | sort -rn | head -n ${lim}
+  cat $file | cut -d ' '  -f1 | sort | tee "test.txt" | uniq -c | sort -rn | head -n ${lim}
 }
 
 
@@ -61,6 +61,8 @@ fi
 # trough the command line
 while [ $# -gt 0 ]
 do
+  echo ${1}
+  echo ${2}
   case ${1} in
     -n | --number )   lim=${2}    ; shift  ;;
     -f | --file   )   file=${2}   ; shift  ;;
