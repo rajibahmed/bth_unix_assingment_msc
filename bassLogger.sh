@@ -12,14 +12,15 @@
 
 #default variables
 VERSION="1.0.0.dev"
-lim=20
-
+FILE=""
+LIMIT= # if not capped all info will show
 
 output_help(){
-  echo "usage: options [n|h|f]"
+  echo "\n*========================================"
+  echo "*  How to use this program see the specs :) "
+  echo "*========================================\n"
   exit ${1}
 }
-
 
 
 version(){
@@ -31,9 +32,7 @@ version(){
 best_attempts(){
   echo "Q1: Most number of connection attempts   "
   echo "========================================="
-
-  #conditional for time parsing
-  cat $file | cut -d ' '  -f1 | sort | tee "test.txt" | uniq -c | sort -rn | head -n ${lim}
+  cat ${FILE} | cut -d ' '  -f1 | uniq -c | sort -rn >> tmp.txt
 }
 
 
@@ -43,9 +42,38 @@ successful_con(){
   echo "========================================="
 
   #conditional for time parsing
-  cat $file |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | head -n ${lim} | sed "s/200$//"
+  cat ${FILE} |  cut -d " " -f1,9 | grep 200$ | sort -rn | uniq -c | sort -rn | sed "s/200$//" >> tmp.txt
+
 }
 
+
+display_results(){
+  if [ -n "${LIMIT}" ] ; then
+    cat tmp.txt | head -n ${LIMIT}
+  else
+    cat tmp.txt
+  fi
+  rm tmp.txt
+}
+
+
+file_or_stdin(){
+  # Make sure we get file name as command line argument
+  # Else read it from standard input device
+  if [ "$1" == "" ]; then
+     FILE="/dev/stdin"
+  else
+     FILE="${1}"
+     # checks file exist and readable
+     if [ ! -f ${FILE} ]; then
+          echo "${FILE} : does not exists"
+          exit 1
+     elif [ ! -r ${FILE} ]; then
+          echo "${FILE}: can not read"
+          exit 2
+     fi
+  fi
+}
 
 
 
@@ -61,20 +89,18 @@ fi
 # trough the command line
 while [ $# -gt 0 ]
 do
-  echo ${1}
-  echo ${2}
   case ${1} in
-    -n | --number )   lim=${2}    ; shift  ;;
-    -f | --file   )   file=${2}   ; shift  ;;
+    -n | --number )   shift  ; LIMIT=${1};;
+    -f | --file   )   shift  ; FILE=${1} ;;
     -v | --version)   version         ;;
     -c )              best_attempts   ;;
     -2 )              successful_con  ;;
     -h | --help   )   output_help 0   ;;
-    -*) echo $0: $1: unrecognized option >&2 ;;
-     *) break   ;;
+    *)  break ;;
   esac
   shift
 done
 
 # Actual excution of functions to display data
 echo "\n"
+display_results
