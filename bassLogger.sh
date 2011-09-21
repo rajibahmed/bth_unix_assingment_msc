@@ -73,7 +73,7 @@ common_code_from_ips(){
 
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1 | uniq > tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | sort -rn | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1,7 | uniq > tmp.txt
   else
     output_help 1
   fi
