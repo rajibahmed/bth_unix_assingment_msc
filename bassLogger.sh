@@ -30,7 +30,7 @@ version(){
 }
 
 conditioner(){
- cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' >> processed_tmp.txt
+ cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' > processed_tmp.txt
 }
 
 
@@ -47,8 +47,7 @@ best_attempts(){
   conditioner
 
   if [ ${HOURS} -lt  24 ]; then
-   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn >> tmp.txt
-   rm processed_tmp.txt
+   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn > tmp.txt
   else
     output_help 1
   fi
@@ -61,8 +60,7 @@ successful_con(){
   echo "========================================="
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn >> "tmp.txt"
-    rm processed_tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn > "tmp.txt"
   else
     output_help 1
   fi
@@ -75,8 +73,7 @@ common_code_from_ips(){
 
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1 | uniq >> tmp.txt
-    rm processed_tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1 | uniq > tmp.txt
   else
     output_help 1
   fi
@@ -91,14 +88,26 @@ common_faliure_code_from_ips(){
 
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1 | sort -rn | uniq >> tmp.txt
-    rm processed_tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1 | sort -rn | uniq > tmp.txt
   else
     output_help 1
   fi
 
 }
 
+
+
+most_bytes_sent(){
+  echo "Q5: Most bytes sent to ips"
+  echo "============================================================"
+
+  conditioner
+  if [ ${HOURS} -lt  24 ]; then
+    cat processed_tmp.txt | cut -d " " -f1,8 | sort -k 2 -rn > tmp.txt
+  else
+    output_help 1
+  fi
+}
 
 
 display_results(){
@@ -174,6 +183,7 @@ do
     -2 )              successful_con  ;;
     -r )              common_code_from_ips  ;;
     -F)               common_faliure_code_from_ips ;;
+    -t)               most_bytes_sent ;;
     *)  break ;;
   esac
   shift
