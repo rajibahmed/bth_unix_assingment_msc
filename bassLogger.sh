@@ -30,7 +30,7 @@ version(){
 }
 
 conditioner(){
- cat ${FILE}  | cut -d ' '  -f1,4,9  | sed -e "s/\[/ /g;s/:/ /g" | tee rajib.txt | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' >> processed_tmp.txt
+ cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' >> processed_tmp.txt
 }
 
 
@@ -61,12 +61,44 @@ successful_con(){
   echo "========================================="
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f1,7 | tee rajib.txt | grep 200$ | sort -rn | uniq -c | sort -rn >> "tmp.txt"
+    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn >> "tmp.txt"
     rm processed_tmp.txt
   else
     output_help 1
   fi
 }
+
+
+common_code_from_ips(){
+  echo "Q3: Most common status code and uniq ips on that status code"
+  echo "============================================================"
+
+  conditioner
+  if [ ${HOURS} -lt  24 ]; then
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1 | uniq >> tmp.txt
+    rm processed_tmp.txt
+  else
+    output_help 1
+  fi
+
+}
+
+
+
+common_faliure_code_from_ips(){
+  echo "Q4: Most status code 400-599 and uniq ips on that status code"
+  echo "============================================================"
+
+  conditioner
+  if [ ${HOURS} -lt  24 ]; then
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1 | sort -rn | uniq >> tmp.txt
+    rm processed_tmp.txt
+  else
+    output_help 1
+  fi
+
+}
+
 
 
 display_results(){
@@ -75,10 +107,13 @@ display_results(){
   else
     if [ -f "tmp.txt" ]; then
       cat tmp.txt
-      rm tmp.txt
     else
       output_help 1
     fi
+  fi
+
+  if [ -f "tmp.txt" ]; then
+    rm tmp.txt
   fi
 }
 
@@ -137,6 +172,8 @@ do
     -v | --version)   version         ;;
     -c )              best_attempts   ;;
     -2 )              successful_con  ;;
+    -r )              common_code_from_ips  ;;
+    -F)               common_faliure_code_from_ips ;;
     *)  break ;;
   esac
   shift
