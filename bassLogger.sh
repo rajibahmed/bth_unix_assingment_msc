@@ -36,8 +36,8 @@ conditioner(){
 
 
 best_attempts(){
-  echo "Q1: Most number of connection attempts   "
-  echo "========================================="
+  #echo "Q1: Most number of connection attempts   "
+  #echo "========================================="
   #cat ${FILE} | cut -d ' '  -f1 | sort -n | uniq -c | sort -rn >> tmp.txt
   #for i in $( seq $(( ${HOURS} )))
   #do
@@ -47,7 +47,7 @@ best_attempts(){
   conditioner
 
   if [ ${HOURS} -lt  24 ]; then
-   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn > tmp.txt
+   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn | awk '{ print $2 "\t" $1 }'> tmp.txt
   else
     output_help 1
   fi
@@ -56,11 +56,11 @@ best_attempts(){
 
 
 successful_con(){
-  echo "Q2: Most number of successful connections"
-  echo "========================================="
+  #echo "Q2: Most number of successful connections"
+  #echo "========================================="
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn > "tmp.txt"
+    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn | awk '{ print $1 "\t" $2 }' > "tmp.txt"
   else
     output_help 1
   fi
@@ -68,12 +68,12 @@ successful_con(){
 
 
 common_code_from_ips(){
-  echo "Q3: Most common status code and uniq ips on that status code"
-  echo "============================================================"
+  #echo "Q3: Most common status code and uniq ips on that status code"
+  #echo "============================================================"
 
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | sort -rn | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1,7 | uniq > tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | sort -rn | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1,7 | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
   else
     output_help 1
   fi
@@ -83,12 +83,12 @@ common_code_from_ips(){
 
 
 common_faliure_code_from_ips(){
-  echo "Q4: Most status code 400-599 and uniq ips on that status code"
-  echo "============================================================"
+#  echo "Q4: Most status code 400-599 and uniq ips on that status code"
+  #echo "============================================================"
 
   conditioner
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1 | sort -rn | uniq > tmp.txt
+    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1,7 | sort -rn | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
   else
     output_help 1
   fi
@@ -98,12 +98,23 @@ common_faliure_code_from_ips(){
 
 
 most_bytes_sent(){
-  echo "Q5: Most bytes sent to ips"
-  echo "============================================================"
+  #echo "Q5: Most bytes sent to ips"
+  #echo "============================================================"
 
   conditioner
+
+  #wierd :)
   if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt | cut -d " " -f1,8 | sort -k 2 -rn > tmp.txt
+    for ip in ` cat 'processed_tmp.txt' | cut -d " " -f1 | sort -rn | uniq `
+    do
+      sum=0
+      for line in ` cat 'processed_tmp.txt' | grep -e "${ip}" | cut -d " " -f1,8 | sed -e "s/-/0/g;s/ /-/g"`
+      do
+        bytes=`echo $line | cut -d "-" -f2 `
+        sum=$(( ${sum}+${bytes} ))
+      done
+      echo "${ip} ${sum}"  >> tmp.txt
+    done
   else
     output_help 1
   fi
@@ -191,5 +202,5 @@ done
 
 # Actual excution of functions to display data
 file_or_stdin
-display_results
+#display_results
 exit 0
