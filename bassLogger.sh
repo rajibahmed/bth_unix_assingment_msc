@@ -15,6 +15,7 @@ VERSION="1.0.0.dev"
 FILE=""
 LIMIT= # if not capped all info will show
 HOURS=23
+DAYS=0
 
 output_help(){
   echo "*========================================"
@@ -30,7 +31,27 @@ version(){
 }
 
 conditioner(){
- cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' > processed_tmp.txt
+
+  if [  "${HOURS}" -gt 0  ]; then
+  cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' > processed_tmp.txt
+  fi
+
+  last_date=`cat ${FILE} | tail -1 | cut -d " " -f4| sed -e "s/\[//g" | cut -d ":" -f1 | sed -e "s/\// /g"`
+
+  #if [ -f "processed_tmp.txt" ]; then
+    #FILE="processed_tmp.txt"
+  #fi
+
+
+  if [ "${DAYS}" -gt 0 ]; then
+
+    #DAYS=`expr ${DAYS} - 1`
+    for day in `seq ${DAYS}`
+    do
+       find_date=` date --date="${last_date} ${day} day ago" '+%d/%b/%Y'`
+       cat ${FILE} |grep -e "$find_date" >> tmpfile
+    done
+  fi
 }
 
 
@@ -45,12 +66,8 @@ best_attempts(){
   #done
 
   conditioner
+  cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn | awk '{ print $2 "\t" $1 }'> tmp.txt
 
-  if [ ${HOURS} -lt  24 ]; then
-   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn | awk '{ print $2 "\t" $1 }'> tmp.txt
-  else
-    output_help 1
-  fi
 }
 
 
@@ -59,11 +76,7 @@ successful_con(){
   #echo "Q2: Most number of successful connections"
   #echo "========================================="
   conditioner
-  if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn | awk '{ print $1 "\t" $2 }' > "tmp.txt"
-  else
-    output_help 1
-  fi
+  cat processed_tmp.txt |  cut -d " " -f1,7  | grep 200$ | sort -rn | uniq -c | sort -rn | awk '{ print $1 "\t" $2 }' > "tmp.txt"
 }
 
 
@@ -72,12 +85,7 @@ common_code_from_ips(){
   #echo "============================================================"
 
   conditioner
-  if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | sort -rn | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1,7 | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
-  else
-    output_help 1
-  fi
-
+  cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | sort -rn | head -n 1 | cut -d " " -f4 | grep -f - processed_tmp.txt | cut -d " " -f1,7 | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
 }
 
 
@@ -87,12 +95,7 @@ common_faliure_code_from_ips(){
   #echo "============================================================"
 
   conditioner
-  if [ ${HOURS} -lt  24 ]; then
-    cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1,7 | sort -rn | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
-  else
-    output_help 1
-  fi
-
+  cat processed_tmp.txt |  cut -d " " -f7  | sort -rn | uniq -c | grep "[4-5][0-9]\{2\}$" | awk '{ print " "$2 }' |  grep -f - processed_tmp.txt  | cut -d " " -f1,7 | sort -rn | uniq | awk '{ print $2 "\t" $1 }'> tmp.txt
 }
 
 
@@ -103,21 +106,22 @@ most_bytes_sent(){
 
   conditioner
 
-  #wierd :)
-  if [ ${HOURS} -lt  24 ]; then
-    for ip in ` cat 'processed_tmp.txt' | cut -d " " -f1 | sort -rn | uniq `
-    do
-      sum=0
-      for line in ` cat 'processed_tmp.txt' | grep -e "${ip}" | cut -d " " -f1,8 | sed -e "s/-/0/g;s/ /-/g"`
-      do
-        bytes=`echo $line | cut -d "-" -f2 `
-        sum=$(( ${sum}+${bytes} ))
-      done
-      echo "${ip} ${sum}"  >> tmp.txt
-    done
-  else
-    output_help 1
+  if [ -f 'tmpfile' ]; then
+    rm 'tmpfile'
   fi
+
+  #wierd :)
+  for ip in ` cat 'processed_tmp.txt' | cut -d " " -f1 | sort -rn | uniq `
+  do
+    sum=0
+    for line in ` cat 'processed_tmp.txt' | grep -e "${ip}" | cut -d " " -f1,8 | sed -e "s/-/0/g;s/ /-/g"`
+    do
+      bytes=`echo $line | cut -d "-" -f2 `
+      sum=$(( ${sum}+${bytes} ))
+    done
+    echo "${ip} ${sum}"  >> 'tmpfile'
+  done
+  cat 'tmpfile' | sort -k 2 -rn > 'tmp.txt'
 }
 
 
@@ -189,6 +193,7 @@ do
     -n | --number )   shift  ; LIMIT=${1} ;;
     -f | --file   )   shift  ; FILE=${1}  ;;
     -h | --hours )    shift  ; HOURS=${1} ;;
+    -d | --days  )    shift  ; DAYS=${1}  ;;
     -v | --version)   version         ;;
     -c )              best_attempts   ;;
     -2 )              successful_con  ;;
@@ -201,6 +206,7 @@ do
 done
 
 # Actual excution of functions to display data
+conditioner
 file_or_stdin
 #display_results
 exit 0
