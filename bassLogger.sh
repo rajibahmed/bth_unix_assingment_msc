@@ -18,9 +18,12 @@ HOURS=23
 DAYS=0
 
 output_help(){
-  echo "*========================================"
-  echo "*  How to use this program see the specs :) "
-  echo "*========================================"
+  echo "*============================================================="
+  echo "  This is how you use this application  :"
+  echo "  params sequence is important to run the application properly "
+  echo "  script_name -f [FILENAME] -[n|h|d] -[c|r|2|t|F] "
+  echo -e "  the last argument is ignored .... file name should be \n passed as value to f flag"
+  echo "============================================================="
   exit ${1}
 }
 
@@ -30,28 +33,35 @@ version(){
   exit 0
 }
 
-conditioner(){
+processed_by_date(){
+  last_date=`cat ${FILE} | tail -1 | cut -d " " -f4 | sed -e "s/\[//g" | cut -d ":" -f1 | sed -e "s/\// /g"`
 
-  if [  "${HOURS}" -gt 0  ]; then
-  cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' > processed_tmp.txt
+  if [ -f 'tmpfile' ];then
+    rm 'tmpfile'
   fi
 
-  last_date=`cat ${FILE} | tail -1 | cut -d " " -f4| sed -e "s/\[//g" | cut -d ":" -f1 | sed -e "s/\// /g"`
-
-  #if [ -f "processed_tmp.txt" ]; then
-    #FILE="processed_tmp.txt"
-  #fi
-
-
   if [ "${DAYS}" -gt 0 ]; then
-
     #DAYS=`expr ${DAYS} - 1`
     for day in `seq ${DAYS}`
     do
        find_date=` date --date="${last_date} ${day} day ago" '+%d/%b/%Y'`
-       cat ${FILE} |grep -e "$find_date" >> tmpfile
+       cat 'processed_tmp.txt' | grep -e "$find_date" >> tmpfile
     done
+    cat tmpfile > 'processed_tmp.txt'
   fi
+}
+
+processed_by_hours(){
+  if [  "${HOURS}" -gt 0  ]; then
+    cat ${FILE}  | cut -d ' '  -f1,4,9,10  | sed -e "s/\[/ /g;s/:/ /g" | awk -v H="${HOURS}" '{ if($3<=H) print $0 }' > 'processed_tmp.txt'
+  fi
+}
+
+
+conditioner(){
+    #When only one params is availible
+    processed_by_hours
+    processed_by_date
 }
 
 
@@ -59,11 +69,6 @@ conditioner(){
 best_attempts(){
   #echo "Q1: Most number of connection attempts   "
   #echo "========================================="
-  #cat ${FILE} | cut -d ' '  -f1 | sort -n | uniq -c | sort -rn >> tmp.txt
-  #for i in $( seq $(( ${HOURS} )))
-  #do
-    #cat tmp.txt | grep -e "[0-9]\{4\}:${i}" > rajib.txt
-  #done
 
   conditioner
   cat processed_tmp.txt | cut -d " " -f1 | sort -n | uniq -c | sort -rn | awk '{ print $2 "\t" $1 }'> tmp.txt
@@ -200,13 +205,12 @@ do
     -r )              common_code_from_ips  ;;
     -F)               common_faliure_code_from_ips ;;
     -t)               most_bytes_sent ;;
-    *)  break ;;
+    *)break ;;
   esac
   shift
 done
 
 # Actual excution of functions to display data
-conditioner
 file_or_stdin
-#display_results
+display_results
 exit 0
