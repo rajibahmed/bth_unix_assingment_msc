@@ -36,12 +36,15 @@ version(){
 processed_by_date(){
   last_date=`cat ${FILE} | tail -1 | cut -d " " -f4 | sed -e "s/\[//g" | cut -d ":" -f1 | sed -e "s/\// /g"`
 
+  the_date=`echo $last_date | sed -e "s/ /\//g"`
+
+
   if [ -f 'tmpfile' ];then
     rm 'tmpfile'
   fi
 
   if [ "${DAYS}" -gt 0 ]; then
-    #DAYS=`expr ${DAYS} - 1`
+    cat 'processed_tmp.txt' | grep -e "$the_date" >> tmpfile
     for day in `seq ${DAYS}`
     do
        find_date=` date --date="${last_date} ${day} day ago" '+%d/%b/%Y'`
