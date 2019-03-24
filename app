@@ -76,3 +76,5 @@ if args.success:
 
 if args.common:
     common_status_codes(data, args.number)
+
+sys.exit(0)
