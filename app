@@ -4,18 +4,25 @@ import sys
 import argparse
 import collections
 
-parser = argparse.ArgumentParser('Httpd Log Analyzer version')
+parser = argparse.ArgumentParser('Httpd Log Analyzer')
 
 parser.add_argument('-2', '--success', action='store_true',
                     help='successful connections')
 parser.add_argument('-c', '--best', action='store_true', help='best attemtps')
 parser.add_argument('-d', '--days', help='days')
 parser.add_argument('-F', '--failures', help='Faliures from ips')
-parser.add_argument(
-    '-f', '--file', type=argparse.FileType('r'), default=sys.stdin, help='file path')
 parser.add_argument('-H', '--hours', help='hours of the day')
-parser.add_argument('-n', '--number', type=int, help='number of results')
-parser.add_argument('-r', help='common code from ips')
+parser.add_argument('-r', '--common', action='store_true',
+                    help='common code from ips')
+parser.add_argument('-n', '--number',
+                    type=int,
+                    help='number of results')
+parser.add_argument(
+    '-f', '--file',
+    type=argparse.FileType('r'),
+    default=sys.stdin,
+    help='file path'
+)
 parser.add_argument('-v', '--version', action='version',
                     version='%(prog)s 1.0')
 
@@ -31,7 +38,7 @@ data = args.file.readlines()
 
 
 def display_list(ips, num_of_lines):
-    for ip, count in collections.Counter(ips).most_common()[:num_of_lines]:
+    for ip, count in collections.Counter(ips).most_common(num_of_lines):
         print(f'{ip}\t{count}')
 
 
@@ -44,7 +51,17 @@ def successful_connection_attempts(data, num_of_lines):
     display_list(ips, num_of_lines)
 
 
-def best_attempts(data, num_of_lines=1):
+def common_status_codes(data, num_of_lines):
+    ips = []
+    for line in data:
+        ip, *_, status = line.split()[0:9]
+        ips.append((ip, status))
+
+    for tup, count in collections.Counter(ips).most_common(num_of_lines):
+        print(f'{tup[0]}\t{tup[1]}\t{count}')
+
+
+def best_attempts(data, num_of_lines):
     ips = []
     for line in data:
         ips.append(line.split()[0])
@@ -56,3 +73,6 @@ if args.best:
 
 if args.success:
     successful_connection_attempts(data, args.number)
+
+if args.common:
+    common_status_codes(data, args.number)
