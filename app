@@ -38,7 +38,7 @@ def display_list(ips, num_of_lines):
 def successful_connection_attempts(data, num_of_lines):
     ips = []
     for line in data:
-        ip, _, _, _, _, _, _, _, status, *_ = line.split()
+        ip, *_, status = line.split()[0:9]
         if int(status) == 200:
             ips.append(ip)
     display_list(ips, num_of_lines)
