@@ -11,7 +11,7 @@ parser.add_argument('-2', '--success', action='store_true',
 parser.add_argument('-c', '--best', action='store_true', help='best attemtps')
 parser.add_argument('-d', '--days', help='days')
 parser.add_argument('-F', '--failures', help='Faliures from ips')
-parser.add_argument('-H', '--hours', help='hours of the day')
+parser.add_argument('-H', '--hours', type=int, help='hours of the day')
 parser.add_argument('-r', '--common', action='store_true',
                     help='common code from ips')
 parser.add_argument('-n', '--number',
@@ -69,8 +69,10 @@ def best_attempts(data, num_of_lines):
 
 
 if args.hours:
+    if args.hours not in range(1, 23):
+        print('Hours must be 0-23')
     data = [line for line in data
-            if int(args.hours) == int(line.split()[3].split(':')[1])]
+            if args.hours == int(line.split()[3].split(':')[1])]
 
 if args.best:
     best_attempts(data, args.number)
