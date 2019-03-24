@@ -70,7 +70,7 @@ def best_attempts(data, num_of_lines):
 
 if args.hours:
     if args.hours not in range(1, 23):
-        print('Hours must be 0-23')
+        sys.stderr.write('Hours must be 0-23')
     data = [line for line in data
             if args.hours == int(line.split()[3].split(':')[1])]
 
