@@ -68,6 +68,10 @@ def best_attempts(data, num_of_lines):
     display_list(ips, num_of_lines)
 
 
+if args.hours:
+    data = [line for line in data
+            if int(args.hours) == int(line.split()[3].split(':')[1])]
+
 if args.best:
     best_attempts(data, args.number)
 
