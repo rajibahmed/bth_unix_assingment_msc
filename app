@@ -57,8 +57,8 @@ def common_status_codes(data, num_of_lines):
         ip, *_, status = line.split()[0:9]
         ips.append((ip, status))
 
-    for tup, count in collections.Counter(ips).most_common(num_of_lines):
-        print(f'{tup[0]}\t{tup[1]}\t{count}')
+    for (ip, status), count in collections.Counter(ips).most_common(num_of_lines):
+        print(f'{ip}\t{status}\t{count}')
 
 
 def best_attempts(data, num_of_lines):
